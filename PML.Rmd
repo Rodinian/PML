@@ -1,0 +1,50 @@
+---
+title: "PML"
+author: "Rodinian"
+date: "23 February, 2015"
+output: html_document
+---
+## Download the Dataset
+```{r}
+#download the data set
+fileUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+download.file(fileUrl,destfile="./pmlTraining.csv",method="curl")
+fileUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+download.file(fileUrl,destfile="./pmlTesting.csv",method="curl")
+list.files("./")
+```
+
+##Clean the data
+In the dataset, there are some columns full of NAs and some columns are useless in predict. Those columns were removed. This is based on the factor that our algorithm is not time-dependent or user-dependent.
+```{r}
+#clean the traindata first
+trainData<-read.csv("./pmlTraining.csv", stringsAsFactors=F,na.strings=c("","NA","#DIV/0!"))
+trainData<-trainData[,!is.na(trainData[1,])]
+trainData$user_name<-as.factor(trainData$user_name)
+trainData$classe<- as.factor(trainData$classe)
+trainData<-trainData[,8:60]
+#clean the testdata
+testData<-read.csv("./pmlTesting.csv", stringsAsFactors=F,na.strings=c("","NA","#DIV/0!"))
+testData<-testData[,!is.na(testData[1,])]
+testData$user_name<-as.factor(testData$user_name)
+testData<-testData[,8:59]
+```
+##Train the Algorithm 
+The direct randomForest method was used to improve the speed.
+```{r}
+require(randomForest)
+fit<-randomForest(classe~.,data=trainData,ntree = 500)
+fit
+```
+##Test
+```{r}
+require(caret)
+pred <- predict(fit,testData)
+```
+##Estimate of The out-of-bag (oob) error 
+My algorithm is based on the random forests method. And in random forests, there is no need for cross-validation or a separate test set to get an unbiased estimate of the test set error. It is estimated internally, during the run, as follows:
+Each tree is constructed using a different bootstrap sample from the original data. About one-third of the cases are left out of the bootstrap sample and not used in the construction of the kth tree.
+Put each case left out in the construction of the kth tree down the kth tree to get a classification. In this way, a test set classification is obtained for each case in about one-third of the trees. At the end of the run, take j to be the class that got most of the votes every time case n was oob. The proportion of times that j is not equal to the true class of n averaged over all cases is the oob error estimate. This has proven to be unbiased in many tests. [https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#micro2]
+```{r}
+summary(fit)
+```
