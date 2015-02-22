@@ -1,0 +1,207 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>PML by Rodinian</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>PML</h1>
+        <p>practice</p>
+
+        <p class="view"><a href="https://github.com/Rodinian/PML">View the Project on GitHub <small>Rodinian/PML</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/Rodinian/PML/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/Rodinian/PML/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/Rodinian/PML">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>&lt;!DOCTYPE html&gt;</p>
+
+<p></p>
+
+<p></p>
+
+<p>
+
+</p>
+
+<p></p>
+
+<p></p>PML
+
+
+
+<p>
+
+</p>
+
+
+
+code{white-space: pre;}
+
+<p></p>
+
+
+
+
+  pre:not([class]) {
+    background-color: white;
+  }
+
+
+
+
+<p></p>
+
+<p></p>
+
+
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+<div>
+
+
+<div id="header">
+<h1>
+<a id="pml" class="anchor" href="#pml" aria-hidden="true"><span class="octicon octicon-link"></span></a>PML</h1>
+<h4>
+<a id="rodinian" class="anchor" href="#rodinian" aria-hidden="true"><span class="octicon octicon-link"></span></a><em>Rodinian</em>
+</h4>
+<h4>
+<a id="23-february-2015" class="anchor" href="#23-february-2015" aria-hidden="true"><span class="octicon octicon-link"></span></a><em>23 February, 2015</em>
+</h4>
+</div>
+
+<div id="download-the-dataset">
+<h2>
+<a id="download-the-dataset" class="anchor" href="#download-the-dataset" aria-hidden="true"><span class="octicon octicon-link"></span></a>Download the Dataset</h2>
+<pre><code>#download the data set
+fileUrl &lt;- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+download.file(fileUrl,destfile="./pmlTraining.csv",method="curl")
+fileUrl &lt;- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+download.file(fileUrl,destfile="./pmlTesting.csv",method="curl")
+list.files("./")</code></pre>
+<pre><code>## [1] "PML.R"           "PML.Rmd"         "PML.html"        "pmlTesting.csv" 
+## [5] "pmlTraining.csv"</code></pre>
+</div>
+
+<div id="clean-the-data">
+<h2>
+<a id="clean-the-data" class="anchor" href="#clean-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Clean the data</h2>
+<p>In the dataset, there are some columns full of NAs and some columns are useless in predict. Those columns were removed. This is based on the factor that our algorithm is not time-dependent or user-dependent.</p>
+<pre><code>#clean the traindata first
+trainData&lt;-read.csv("./pmlTraining.csv", stringsAsFactors=F,na.strings=c("","NA","#DIV/0!"))
+trainData&lt;-trainData[,!is.na(trainData[1,])]
+trainData$user_name&lt;-as.factor(trainData$user_name)
+trainData$classe&lt;- as.factor(trainData$classe)
+trainData&lt;-trainData[,8:60]
+#clean the testdata
+testData&lt;-read.csv("./pmlTesting.csv", stringsAsFactors=F,na.strings=c("","NA","#DIV/0!"))
+testData&lt;-testData[,!is.na(testData[1,])]
+testData$user_name&lt;-as.factor(testData$user_name)
+testData&lt;-testData[,8:59]</code></pre>
+</div>
+
+<div id="train-the-algorithm">
+<h2>
+<a id="train-the-algorithm" class="anchor" href="#train-the-algorithm" aria-hidden="true"><span class="octicon octicon-link"></span></a>Train the Algorithm</h2>
+<p>The direct randomForest method was used to improve the speed.</p>
+<pre><code>require(randomForest)</code></pre>
+<pre><code>## Loading required package: randomForest
+## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre><code>fit&lt;-randomForest(classe~.,data=trainData,ntree = 500)
+fit</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(formula = classe ~ ., data = trainData, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 7
+## 
+##         OOB estimate of  error rate: 0.28%
+## Confusion matrix:
+##      A    B    C    D    E class.error
+## A 5577    3    0    0    0   0.0005376
+## B   11 3783    3    0    0   0.0036871
+## C    0   11 3410    1    0   0.0035067
+## D    0    0   20 3195    1   0.0065299
+## E    0    0    1    3 3603   0.0011090</code></pre>
+</div>
+
+<div id="test">
+<h2>
+<a id="test" class="anchor" href="#test" aria-hidden="true"><span class="octicon octicon-link"></span></a>Test</h2>
+<pre><code>require(caret)</code></pre>
+<pre><code>## Loading required package: caret
+## Loading required package: lattice
+## Loading required package: ggplot2</code></pre>
+<pre><code>pred &lt;- predict(fit,testData)</code></pre>
+</div>
+
+<div id="estimate-of-the-out-of-bag-oob-error">
+<h2>
+<a id="estimate-of-the-out-of-bag-oob-error" class="anchor" href="#estimate-of-the-out-of-bag-oob-error" aria-hidden="true"><span class="octicon octicon-link"></span></a>Estimate of The out-of-bag (oob) error</h2>
+<p>My algorithm is based on the random forests method. And in random forests, there is no need for cross-validation or a separate test set to get an unbiased estimate of the test set error. It is estimated internally, during the run, as follows: Each tree is constructed using a different bootstrap sample from the original data. About one-third of the cases are left out of the bootstrap sample and not used in the construction of the kth tree. Put each case left out in the construction of the kth tree down the kth tree to get a classification. In this way, a test set classification is obtained for each case in about one-third of the trees. At the end of the run, take j to be the class that got most of the votes every time case n was oob. The proportion of times that j is not equal to the true class of n averaged over all cases is the oob error estimate. This has proven to be unbiased in many tests. [<a href="https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#micro2">https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#micro2</a>]</p>
+<pre><code>summary(fit)</code></pre>
+<pre><code>##                 Length Class  Mode     
+## call                4  -none- call     
+## type                1  -none- character
+## predicted       19622  factor numeric  
+## err.rate         3000  -none- numeric  
+## confusion          30  -none- numeric  
+## votes           98110  matrix numeric  
+## oob.times       19622  -none- numeric  
+## classes             5  -none- character
+## importance         52  -none- numeric  
+## importanceSD        0  -none- NULL     
+## localImportance     0  -none- NULL     
+## proximity           0  -none- NULL     
+## ntree               1  -none- numeric  
+## mtry                1  -none- numeric  
+## forest             14  -none- list     
+## y               19622  factor numeric  
+## test                0  -none- NULL     
+## inbag               0  -none- NULL     
+## terms               3  terms  call</code></pre>
+</div>
+
+<p></p>
+</div>
+
+
+
+
+
+
+
+<p>
+</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/Rodinian">Rodinian</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
